@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bodega Danitin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f4f6f9; color: #1a1a2e; }
+
+    /* Nav */
+    nav { background: #1a1a2e; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    nav h1 { font-size: 1.1rem; flex: 1; }
+    nav button { background: transparent; border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 0.85rem; }
+    nav button:hover, nav button.activo { background: #e94560; border-color: #e94560; }
+
+    /* Layout */
+    main { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+    .seccion { display: block; }
+    .hidden  { display: none !important; }
+    h2 { margin-bottom: 16px; font-size: 1.2rem; color: #1a1a2e; }
+
+    /* Tarjeta */
+    .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 20px; }
+
+    /* Buscador */
+    .buscador-wrap { display: flex; gap: 10px; margin-bottom: 16px; }
+    #buscador { flex: 1; padding: 10px 14px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.95rem; }
+    .btn-primary { background: #e94560; color: #fff; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; }
+    .btn-primary:hover { background: #c73652; }
+
+    /* Tabla */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { background: #f0f0f5; padding: 10px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr.fila-alerta td { background: #fff5f5; }
+    .empty, .loading { text-align: center; color: #999; padding: 24px 0; }
+    .error { text-align: center; color: #e94560; padding: 24px 0; }
+
+    /* Badges */
+    .badge-categoria { background: #e8f0fe; color: #1967d2; padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; white-space: nowrap; }
+    .badge-estado { padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; }
+    .estado-en_stock { background: #e6f4ea; color: #137333; }
+    .estado-en_transito { background: #fef3cd; color: #856404; }
+    .estado-pendiente_despacho { background: #fce8e6; color: #c5221f; }
+    .badge-tipo { padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; }
+    .tipo-entrada { background: #e6f4ea; color: #137333; }
+    .tipo-salida  { background: #fce8e6; color: #c5221f; }
+    .tipo-traslado { background: #e8f0fe; color: #1967d2; }
+    .tipo-ajuste  { background: #fef3cd; color: #856404; }
+    .stock-alerta { color: #c5221f; font-weight: 700; }
+
+    /* Botones de acción */
+    .btn-sm { padding: 4px 10px; border-radius: 6px; border: 1px solid #ddd; cursor: pointer; font-size: 0.8rem; background: #fff; margin: 2px; }
+    .btn-entrada { border-color: #137333; color: #137333; }
+    .btn-salida  { border-color: #c5221f; color: #c5221f; }
+    .btn-sm:hover { opacity: 0.8; }
+
+    /* QR mini en tabla */
+    .qr-mini canvas { width: 50px !important; height: 50px !important; }
+
+    /* Formularios */
+    form .campo { margin-bottom: 14px; }
+    form label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 4px; color: #444; }
+    form input, form select, form textarea {
+      width: 100%; padding: 9px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem;
+    }
+    form textarea { height: 80px; resize: vertical; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    @media (max-width: 600px) { .form-grid { grid-template-columns: 1fr; } }
+    .form-actions { display: flex; gap: 10px; margin-top: 16px; }
+    .btn-secondary { background: #fff; border: 1px solid #ddd; color: #444; padding: 9px 18px; border-radius: 8px; cursor: pointer; }
+
+    /* QR detalle */
+    .qr-container { text-align: center; margin: 16px 0; }
+    #nuevo-qr-container { margin-top: 16px; padding: 16px; background: #f0f9f0; border-radius: 10px; text-align: center; }
+
+    /* Escáner */
+    #qr-video { width: 100%; max-width: 400px; margin: 0 auto; border-radius: 10px; overflow: hidden; }
+    #scan-resultado { margin-top: 20px; padding: 16px; background: #e8f0fe; border-radius: 10px; }
+    #scan-resultado h3 { margin-bottom: 10px; }
+    .scan-acciones { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+
+    /* Toasts */
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 8px; color: #fff; font-size: 0.9rem; z-index: 9999; max-width: 320px; animation: slideIn 0.3s ease; }
+    .toast-ok    { background: #137333; }
+    .toast-error { background: #c5221f; }
+    .toast-alerta { background: #856404; }
+    @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>🏭 <span id="bodega-nombre">Bodega Danitin</span></h1>
+  <button onclick="mostrarSeccion('listado')" class="activo">Inventario</button>
+  <button onclick="mostrarSeccion('nuevo')">+ Nuevo Ítem</button>
+  <button onclick="mostrarSeccion('escanear')">📷 Escanear QR</button>
+</nav>
+
+<main>
+
+  <!-- ── LISTADO ─────────────────────────────────────────── -->
+  <div id="listado" class="seccion">
+    <div class="buscador-wrap">
+      <input id="buscador" type="text" placeholder="Buscar por nombre, categoría...">
+      <button class="btn-primary" onclick="cargarListado()">Actualizar</button>
+    </div>
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th>Categoría</th>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Stock</th>
+            <th>Estado</th>
+            <th>QR</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-items">
+          <tr><td colspan="7" class="loading">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── NUEVO ÍTEM ──────────────────────────────────────── -->
+  <div id="nuevo" class="seccion hidden">
+    <div class="card">
+      <h2>Registrar Nuevo Ítem</h2>
+      <form id="form-nuevo">
+        <div class="form-grid">
+          <div class="campo">
+            <label>Nombre *</label>
+            <input name="nombre" required placeholder="Ej: Sillón Ejecutivo m+Design">
+          </div>
+          <div class="campo">
+            <label>Categoría *</label>
+            <select name="categoria" required>
+              <option value="">Seleccionar...</option>
+              <option>MUEBLE</option>
+              <option>EQUIPAJE_BOLSO</option>
+              <option>TEXTIL_ROPA</option>
+              <option>CONTENEDOR_PLASTICO</option>
+              <option>CAJA_CARTON</option>
+              <option>ELECTRODOMESTICO</option>
+              <option>HERRAMIENTA_BODEGA</option>
+              <option>ITEM_EMBALADO</option>
+              <option>OTRO</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Subcategoría</label>
+            <input name="subcategoria" placeholder="Ej: Silla de oficina">
+          </div>
+          <div class="campo">
+            <label>Ubicación *</label>
+            <select name="ubicacion_id" data-ubicaciones required></select>
+          </div>
+          <div class="campo">
+            <label>Stock inicial *</label>
+            <input name="stock_actual" type="number" min="0" value="1" required>
+          </div>
+          <div class="campo">
+            <label>Stock mínimo</label>
+            <input name="stock_minimo" type="number" min="0" value="0">
+          </div>
+          <div class="campo">
+            <label>Estado de embalaje</label>
+            <select name="estado_embalaje">
+              <option value="en_caja_original">En caja original</option>
+              <option value="en_film">En film plástico</option>
+              <option value="en_contenedor">En contenedor</option>
+              <option value="sin_embalaje">Sin embalaje</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Estado del ítem</label>
+            <select name="estado_item">
+              <option value="en_stock">En stock</option>
+              <option value="en_transito">En tránsito</option>
+              <option value="pendiente_despacho">Pendiente despacho</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>¿Requiere 2 personas?</label>
+            <select name="requiere_dos_personas">
+              <option value="false">No</option>
+              <option value="true">Sí</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label>Valor estimado (CLP)</label>
+            <input name="valor_estimado" type="number" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="campo">
+          <label>Descripción</label>
+          <textarea name="descripcion" placeholder="Descripción detallada del ítem..."></textarea>
+        </div>
+        <div class="campo">
+          <label>URL Foto (Google Drive)</label>
+          <input name="foto_url" type="url" placeholder="https://drive.google.com/...">
+        </div>
+        <div class="campo">
+          <label>Notas adicionales</label>
+          <input name="notas" placeholder="Ej: Detrás del carro de madera">
+        </div>
+
+        <div id="nuevo-qr-container" class="hidden">
+          <p><strong>Ítem creado. Descargá el QR:</strong></p>
+          <div id="qr-nuevo-resultado" style="display:inline-block; margin:12px 0;"></div><br>
+          <button type="button" id="btn-descargar-qr" class="btn-primary">⬇ Descargar QR PNG</button>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Guardar Ítem</button>
+          <button type="button" class="btn-secondary" onclick="mostrarSeccion('listado')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── DETALLE / EDICIÓN ───────────────────────────────── -->
+  <div id="detalle" class="seccion hidden">
+    <div class="card">
+      <h2>Detalle del Ítem</h2>
+      <div style="display:flex; gap:24px; flex-wrap:wrap;">
+        <div class="qr-container">
+          <div id="qr-detalle"></div>
+          <button class="btn-sm" style="margin-top:8px;"
+            onclick="QRModule.descargarQR('qr-detalle', 'qr_item')">⬇ Descargar QR</button>
+        </div>
+        <form id="form-editar" style="flex:1; min-width:260px;">
+          <div class="form-grid">
+            <div class="campo"><label>Nombre</label><input name="nombre"></div>
+            <div class="campo"><label>Categoría</label>
+              <select name="categoria">
+                <option>MUEBLE</option><option>EQUIPAJE_BOLSO</option>
+                <option>TEXTIL_ROPA</option><option>CONTENEDOR_PLASTICO</option>
+                <option>CAJA_CARTON</option><option>ELECTRODOMESTICO</option>
+                <option>HERRAMIENTA_BODEGA</option><option>ITEM_EMBALADO</option><option>OTRO</option>
+              </select>
+            </div>
+            <div class="campo"><label>Ubicación</label><select name="ubicacion_id" data-ubicaciones></select></div>
+            <div class="campo"><label>Estado ítem</label>
+              <select name="estado_item">
+                <option value="en_stock">En stock</option>
+                <option value="en_transito">En tránsito</option>
+                <option value="pendiente_despacho">Pendiente despacho</option>
+                <option value="dado_de_baja">Dado de baja</option>
+              </select>
+            </div>
+            <div class="campo"><label>Stock mínimo</label><input name="stock_minimo" type="number" min="0"></div>
+            <div class="campo"><label>Valor estimado</label><input name="valor_estimado" type="number" min="0"></div>
+          </div>
+          <div class="campo"><label>Notas</label><input name="notas"></div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">Guardar cambios</button>
+            <button type="button" class="btn-secondary" onclick="mostrarSeccion('listado')">Volver</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Historial de Movimientos</h2>
+      <table>
+        <thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Stock resultante</th><th>Responsable</th></tr></thead>
+        <tbody id="tabla-historial"><tr><td colspan="5" class="loading">Cargando...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ── MOVIMIENTO ──────────────────────────────────────── -->
+  <div id="movimiento" class="seccion hidden">
+    <div class="card" style="max-width:500px; margin:0 auto;">
+      <h2>Registrar Movimiento</h2>
+      <p style="margin-bottom:16px; color:#666;">Ítem: <strong id="mov-item-nombre"></strong></p>
+      <form id="form-movimiento">
+        <input type="hidden" id="mov-item-id" name="item_id">
+        <div class="campo">
+          <label>Tipo de movimiento</label>
+          <select id="mov-tipo" name="tipo">
+            <option value="entrada">Entrada</option>
+            <option value="salida">Salida</option>
+            <option value="traslado">Traslado</option>
+            <option value="ajuste">Ajuste</option>
+          </select>
+        </div>
+        <div class="campo">
+          <label>Cantidad</label>
+          <input id="mov-cantidad" name="cantidad" type="number" min="1" required>
+        </div>
+        <div class="campo">
+          <label>Responsable</label>
+          <input id="mov-responsable" name="responsable" required>
+        </div>
+        <div class="campo">
+          <label>Motivo</label>
+          <input id="mov-motivo" name="motivo" placeholder="Ej: Venta cliente, Reposición...">
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn-primary">Registrar</button>
+          <button type="button" class="btn-secondary" onclick="mostrarSeccion('listado')">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── ESCANEAR QR ─────────────────────────────────────── -->
+  <div id="escanear" class="seccion hidden">
+    <div class="card" style="max-width:500px; margin:0 auto; text-align:center;">
+      <h2>Escanear Código QR</h2>
+      <p style="color:#666; margin-bottom:16px;">Apuntá la cámara al código QR del ítem</p>
+      <div id="qr-video"></div>
+
+      <div id="scan-resultado" class="hidden">
+        <h3 id="scan-resultado-nombre"></h3>
+        <p>Stock actual: <strong id="scan-resultado-stock"></strong></p>
+        <p>Ubicación: <strong id="scan-resultado-ub"></strong></p>
+        <div class="scan-acciones">
+          <button id="btn-scan-entrada" class="btn-primary">Registrar Entrada</button>
+          <button id="btn-scan-salida" class="btn-sm btn-salida" style="padding:9px 14px;">Registrar Salida</button>
+          <button id="btn-scan-ver" class="btn-secondary">Ver Detalle</button>
+        </div>
+      </div>
+
+      <button class="btn-secondary" style="margin-top:16px;" onclick="mostrarSeccion('listado')">
+        ← Volver al listado
+      </button>
+    </div>
+  </div>
+
+</main>
+
+<!-- Librerías QR vía CDN -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+<!-- App -->
+<script src="config.js"></script>
+<script src="js/qr.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>

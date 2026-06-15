@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard — Bodega Danitin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f4f6f9; color: #1a1a2e; }
+
+    nav { background: #1a1a2e; color: #fff; padding: 12px 20px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    nav h1 { font-size: 1.1rem; flex: 1; }
+    nav a { color: #fff; text-decoration: none; font-size: 0.85rem; border: 1px solid rgba(255,255,255,0.3); padding: 6px 14px; border-radius: 6px; }
+    nav a:hover { background: #e94560; border-color: #e94560; }
+
+    main { max-width: 1100px; margin: 24px auto; padding: 0 16px; }
+
+    .banner-alerta { background: #c5221f; color: #fff; padding: 12px 20px; border-radius: 8px; margin-bottom: 20px; font-weight: 600; }
+    .hidden { display: none !important; }
+
+    /* KPIs */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card { background: #fff; border-radius: 10px; padding: 20px 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); text-align: center; }
+    .kpi-valor { font-size: 2.4rem; font-weight: 700; color: #1a1a2e; }
+    .kpi-label { font-size: 0.8rem; color: #666; margin-top: 4px; }
+    .kpi-card.alerta .kpi-valor { color: #c5221f; }
+    .kpi-card.verde  .kpi-valor { color: #2b9348; }
+
+    /* Charts */
+    .charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+    @media (max-width: 700px) { .charts-grid { grid-template-columns: 1fr; } }
+    .card { background: #fff; border-radius: 10px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .card h2 { font-size: 1rem; margin-bottom: 16px; color: #444; }
+
+    /* Tabla últimos movs */
+    table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    th { background: #f0f0f5; padding: 10px 8px; text-align: left; font-weight: 600; border-bottom: 2px solid #e0e0e0; }
+    td { padding: 10px 8px; border-bottom: 1px solid #f0f0f0; }
+
+    .badge-tipo { padding: 2px 8px; border-radius: 10px; font-size: 0.78rem; }
+    .tipo-entrada  { background: #e6f4ea; color: #137333; }
+    .tipo-salida   { background: #fce8e6; color: #c5221f; }
+    .tipo-traslado { background: #e8f0fe; color: #1967d2; }
+    .tipo-ajuste   { background: #fef3cd; color: #856404; }
+
+    .btn-refresh { background: #e94560; color: #fff; border: none; padding: 8px 16px; border-radius: 8px; cursor: pointer; font-size: 0.85rem; float: right; }
+    .btn-refresh:hover { background: #c73652; }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 8px; color: #fff; font-size: 0.9rem; z-index: 9999; }
+    .toast-error { background: #c5221f; }
+    .toast-ok    { background: #137333; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <h1>📊 Dashboard — Bodega Danitin</h1>
+  <a href="index.html">← Volver al Inventario</a>
+</nav>
+
+<main>
+
+  <div id="banner-alerta" class="banner-alerta hidden"></div>
+
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <h2 style="font-size:1.1rem; color:#444;">Resumen General</h2>
+    <button class="btn-refresh" onclick="cargarDashboard()">↻ Actualizar</button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-valor" id="kpi-total">—</div>
+      <div class="kpi-label">Total ítems</div>
+    </div>
+    <div class="kpi-card verde">
+      <div class="kpi-valor" id="kpi-en-stock">—</div>
+      <div class="kpi-label">En stock</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-valor" id="kpi-en-transito">—</div>
+      <div class="kpi-label">En tránsito</div>
+    </div>
+    <div class="kpi-card alerta">
+      <div class="kpi-valor" id="kpi-alertas">—</div>
+      <div class="kpi-label">Alertas stock mínimo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-valor" id="kpi-movs-hoy">—</div>
+      <div class="kpi-label">Movimientos hoy</div>
+    </div>
+  </div>
+
+  <!-- Gráficos -->
+  <div class="charts-grid">
+    <div class="card">
+      <h2>Stock por Zona</h2>
+      <canvas id="chart-zona" height="200"></canvas>
+    </div>
+    <div class="card">
+      <h2>Distribución de Estados</h2>
+      <canvas id="chart-estados" height="200"></canvas>
+    </div>
+  </div>
+
+  <!-- Últimos movimientos -->
+  <div class="card">
+    <h2>Últimos Movimientos</h2>
+    <table>
+      <thead>
+        <tr><th>Fecha</th><th>Ítem</th><th>Tipo</th><th>Cantidad</th></tr>
+      </thead>
+      <tbody id="tabla-ultimos-movs">
+        <tr><td colspan="4" style="text-align:center; color:#999; padding:20px;">Cargando...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="config.js"></script>
+<script src="js/app.js"></script>
+<script src="js/dashboard.js"></script>
+<script>
+  // Stub para mostrarToast en dashboard (no hay secciones)
+  function mostrarSeccion() {}
+  document.addEventListener('DOMContentLoaded', cargarDashboard);
+</script>
+
+</body>
+</html>
