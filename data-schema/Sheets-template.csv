@@ -1,0 +1,31 @@
+HOJA: Items
+id,nombre,descripcion,categoria,subcategoria,ubicacion_id,stock_actual,stock_minimo,estado_embalaje,estado_item,requiere_dos_personas,valor_estimado,moneda,foto_url,notas,qr_code,fecha_ingreso,fecha_actualizacion,creado_por
+item-001,Sillón Ejecutivo m+Design 222,Negro con ruedas respaldo malla,MUEBLE,Silla de oficina,UB-01,1,0,en_caja_original,en_stock,FALSE,,,,,, 15/06/2026,15/06/2026,admin
+
+HOJA: Ubicaciones
+id,zona_id,zona_nombre,estante,nivel,descripcion,capacidad_max,activa
+UB-01,Z-01,Entrada / Tránsito,,piso,Entrada izquierda junto a la pared,3,TRUE
+UB-02,Z-01,Entrada / Tránsito,,piso,Entrada derecha carrito metálico,2,TRUE
+UB-03,Z-02,Rack Azul-Naranja (Izquierda),Rack Azul,N1,Nivel bajo bolsos y bolsas,5,TRUE
+UB-04,Z-02,Rack Azul-Naranja (Izquierda),Rack Azul,N2,Nivel medio contenedores azul/amarillo,4,TRUE
+UB-05,Z-02,Rack Azul-Naranja (Izquierda),Rack Azul,N3,Nivel alto contenedores amarillos,4,TRUE
+UB-06,Z-02,Rack Azul-Naranja (Izquierda),Rack Azul,N1,Lateral bajo bolso negro/naranja,2,TRUE
+UB-07,Z-03,Estante Madera-Naranja (Centro-Derecha),Estante Madera,N1,Nivel bajo cajas cartón y contenedor negro,4,TRUE
+UB-08,Z-03,Estante Madera-Naranja (Centro-Derecha),Estante Madera,N2,Nivel medio contenedor negro tapa amarilla,3,TRUE
+UB-09,Z-03,Estante Madera-Naranja (Centro-Derecha),Estante Madera,N3,Nivel alto cajas grandes y bidón,3,TRUE
+UB-10,Z-04,Piso / Pallet (Fondo),,pallet,Pallet con ruedas ítem embalado en film,2,TRUE
+UB-11,Z-04,Piso / Pallet (Fondo),,piso,Piso fondo muebles sueltos,4,TRUE
+UB-12,Z-05,Estante de Chapa (Rincón),Estante Chapa,N1,Nivel bajo contenedor gris grande,2,TRUE
+UB-13,Z-05,Estante de Chapa (Rincón),Estante Chapa,N2,Nivel medio contenedores apilables,4,TRUE
+UB-14,Z-03,Estante Madera-Naranja (Centro-Derecha),,piso,Piso carro de madera con ruedas,1,TRUE
+
+HOJA: Movimientos
+id,item_id,tipo,cantidad,ubicacion_origen_id,ubicacion_destino_id,motivo,responsable,fecha,stock_resultante,notas
+
+HOJA: Config
+clave,valor,descripcion
+nombre_bodega,Bodega Danitin,Nombre que aparece en el frontend
+responsable_default,admin,Responsable por defecto en movimientos
+alerta_stock_minimo,TRUE,Activar alertas de stock mínimo
+moneda_default,CLP,Moneda por defecto para valores
+version_schema,1.0,Versión del esquema para migraciones
