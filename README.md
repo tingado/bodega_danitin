@@ -1,5 +1,12 @@
 # bodega_danitin 🏭
 
+## Empieza aquí
+
+- [Mapa visual, arquitectura y recorrido de los datos](docs/MAPA.md).
+- [Revisión documental y pendientes](docs/REVISION.md).
+
+> Revisión documental: 26 de octubre de 2026. La presencia de código no acredita despliegue ni pruebas aprobadas. Esta revisión no cambia lógica, datos ni configuración operativa.
+
 Sistema web de gestión de bodegas con escaneo/generación de códigos QR, respaldado por Google Sheets como base de datos documental y desplegable en GitHub Pages sin backend tradicional.
 
 ## ¿Qué hace este sistema?
@@ -35,7 +42,7 @@ bodega_danitin/
 │   ├── 01-flujo-fisico.md   # Mapa de zonas y ubicaciones de la bodega
 │   ├── 03-api-contract.md   # Contrato de la API (rutas + JSON)
 │   ├── 07-deploy.md         # Guía de despliegue
-│   ├── 08-propuesta.md      # Propuesta ejecutiva final
+│   ├── 08-propuesta.md      # PROPUESTO: aún no existe en el inventario revisado
 │   └── PROGRESO.md          # Continuidad entre sesiones de desarrollo IA
 ├── data-schema/
 │   ├── schema.md            # Definición de hojas y tipos de campo
@@ -61,27 +68,27 @@ bodega_danitin/
 | Lógica QR + movimientos | [sagar15795/QR-Code_inventory_management](https://github.com/sagar15795/QR-Code_inventory_management) |
 | API doGet() + Chart.js | [Google Apps Script topics](https://github.com/topics/google-apps-script) |
 
-## Estado del Proyecto
+## Estado del proyecto — código y despliegue separados
 
-| Etapa | Descripción | Estado |
-|---|---|---|
-| 0 | Cimientos del repositorio | ✅ Completado |
-| 1 | Levantamiento del flujo físico | ⬜ Pendiente |
-| 2 | Modelo de datos (esquema Sheets) | ⬜ Pendiente |
-| 3 | API Serverless (Apps Script) | ⬜ Pendiente |
-| 4 | Módulo QR | ⬜ Pendiente |
-| 5 | Frontend CRUD | ⬜ Pendiente |
-| 6 | Dashboard y métricas | ⬜ Pendiente |
-| 7 | Despliegue GitHub Pages | ⬜ Pendiente |
-| 8 | Propuesta comercial final | ⬜ Pendiente |
+La tabla anterior del README marcaba las etapas 1–7 como pendientes, pero `docs/PROGRESO.md` las registraba completadas. El mismo registro conserva un listado de requisitos previos a producción. Por eso se distingue:
+
+| Dimensión | Evidencia y estado |
+|---|---|
+| Código y documentos | Existen directorios de frontend, API, esquema y documentación. Se revisó la API, no toda la interfaz. |
+| Configuración de Sheets | `SHEET_ID` conserva un placeholder en el código revisado. Falta configurar una copia de prueba. |
+| Producción | No validada en esta revisión; no se consultaron el endpoint ni la planilla. |
+| Propuesta ejecutiva | `docs/08-propuesta.md` figura planificada, pero no aparece en el listado actual de `docs/`. |
+| Seguridad | Falta validar autenticación, autorización, concurrencia y validaciones de movimientos antes de abrir el endpoint. |
+
+Consulta el [mapa visual](docs/MAPA.md) y la [revisión](docs/REVISION.md). El registro histórico `PROGRESO.md` se conserva sin modificar; sus marcas de finalización no acreditan por sí solas producción operativa.
 
 ## Links del Proyecto
 
+Las referencias privadas de trabajo no se reproducen en esta entrada del repositorio.
+
 - **Repo:** https://github.com/tingado/bodega_danitin
-- **Notion:** https://app.notion.com/p/380e678b8e978059ac59eac0484ada38
-- **Drive:** https://drive.google.com/drive/folders/1gDPVEfz4KDgbtgyRsyCjHjlxJzwnzmxd
 - **App (GitHub Pages):** *(disponible en Etapa 7)*
 
 ---
 
-> Proyecto desarrollado con arquitectura serverless — sin backend propio, sin costos de infraestructura.
+> Arquitectura sin servidor propio: Apps Script actúa como backend. Uso sujeto a cuotas, límites y condiciones de Google y de las dependencias externas.
